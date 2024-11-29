@@ -1,0 +1,109 @@
+#define BLYNK_PRINT Serial
+#define BLYNK_TEMPLATE_ID "TMPL6cs3VzVll"
+#define BLYNK_TEMPLATE_NAME "Button"
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+#include <AccelStepper.h>
+
+// Thay thế bằng thông tin mạng WiFi của bạn
+char ssid[] = "Doan Truong THPT TRUNG GIA";
+char pass[] = "phongdoan12345@";
+
+// Thay thế bằng Auth Token từ Blynk
+char auth[] = "FdK2Duh2r1uksHK8h3ynXLOpuLsM_EqY";
+
+const int stepsPerRevolution = 2048;  
+
+#define IN1 D5
+#define IN2 D6
+#define IN3 D7
+#define IN4 D8
+
+// Định nghĩa các chân LED
+#define LED1 D0
+#define LED2 D1
+#define LED3 D2
+#define LED4 D3
+
+// Định nghĩa các cổng kết nối với Blynk
+#define buttonClockwisePin V4
+#define buttonCounterclockwisePin V0
+
+// Cài thư viện cho động cơ
+AccelStepper stepper(AccelStepper::HALF4WIRE, IN1, IN3, IN2, IN4);
+
+void setup() {
+  // Khởi động Serial và Blynk
+  Serial.begin(9600);
+  Blynk.begin(auth, ssid, pass);
+
+  // Thiết lập các chân LED là OUTPUT
+  pinMode(LED1, OUTPUT);
+  pinMode(LED2, OUTPUT);
+  pinMode(LED3, OUTPUT);
+  pinMode(LED4, OUTPUT);
+
+  // Set the speed and acceleration
+  stepper.setMaxSpeed(500);
+  stepper.setAcceleration(100);
+}
+
+void loop() {
+  Blynk.run();
+  stepper.runSpeed();
+}
+
+// Điều khiển LED1
+BLYNK_WRITE(V1) {
+  int pinValue = param.asInt();
+  digitalWrite(LED1, pinValue);
+  digitalWrite(LED2, pinValue);
+}
+
+// Điều khiển LED2
+//BLYNK_WRITE(V1) {
+  //int pinValue = param.asInt();
+  //digitalWrite(LED2, pinValue);
+//}
+
+// Điều khiển LED3
+BLYNK_WRITE(V2) {
+  int pinValue = param.asInt();
+  digitalWrite(LED3, pinValue);
+}
+
+// Điều khiển LED4
+BLYNK_WRITE(V3) {
+  int pinValue = param.asInt();
+  digitalWrite(LED4, pinValue);
+}
+
+// Điều khiển động cơ bước theo chiều kim đồng hồ
+BLYNK_WRITE(buttonClockwisePin) {
+  int buttonClockwiseState = param.asInt();
+  
+  if (buttonClockwiseState) {
+    stepper.setSpeed(500); 
+    stepper.enableOutputs();  
+    Serial.println("Clockwise");
+  } else {
+    stepper.setSpeed(0);  
+    stepper.disableOutputs();  
+    Serial.println("Motor Stopped");
+  }
+}
+
+// Điều khiển động cơ bước ngược chiều kim đồng hồ
+BLYNK_WRITE(buttonCounterclockwisePin) {
+  int buttonCounterclockwiseState = param.asInt();
+  
+  if (buttonCounterclockwiseState) {
+    stepper.setSpeed(-500);  
+    stepper.enableOutputs();  
+    Serial.println("Counterclockwise");
+  } else {
+    stepper.setSpeed(0);  
+    stepper.disableOutputs();  
+    Serial.println("Motor Stopped");
+  }
+}
